@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>聲音距離 × Phyphox × CODAP｜實驗紀錄</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --ink:#26364f; --muted:#6f7d93; --line:#dfe7ef; --bg:#f7f9fc; --card:#ffffff;
+    --blue:#eaf3ff; --blue-strong:#4f84c4; --mint:#eaf8f3; --mint-strong:#4c9e87;
+    --peach:#fff1e7; --peach-strong:#c9824a; --lav:#f1edff; --lav-strong:#8067c5;
+    --yellow:#fff9df; --danger:#c85a5a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;line-height:1.6}
+  .wrap{max-width:1180px;margin:auto;padding:28px 22px 70px}
+  .hero{background:linear-gradient(120deg,var(--blue),var(--mint));border:1px solid var(--line);border-radius:24px;padding:30px 34px;box-shadow:0 8px 24px rgba(58,83,118,.06)}
+  h1{margin:0 0 8px;font-size:clamp(28px,4vw,46px);letter-spacing:.02em}
+  .subtitle{color:var(--muted);font-size:18px}
+  .flow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:22px}
+  .flow div{padding:10px 8px;border-radius:12px;text-align:center;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff}
+  .flow div:nth-child(1),.flow div:nth-child(5){background:var(--blue)}
+  .flow div:nth-child(2),.flow div:nth-child(6){background:var(--mint)}
+  .flow div:nth-child(3){background:var(--peach)}
+  .flow div:nth-child(4),.flow div:nth-child(7){background:var(--lav)}
+  .toolbar{position:sticky;top:0;z-index:10;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;padding:14px 0;background:rgba(247,249,252,.94);backdrop-filter:blur(8px)}
+  button{border:0;border-radius:12px;padding:11px 16px;font-size:15px;font-weight:800;cursor:pointer}
+  .btn-primary{background:#456fa9;color:white}
+  .btn-secondary{background:white;border:1px solid var(--line);color:var(--ink)}
+  .btn-mint{background:#5caa92;color:white}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;margin:18px 0;box-shadow:0 6px 18px rgba(66,84,112,.04)}
+  .card h2{margin:0 0 16px;font-size:23px}
+  .tag{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:800;margin-right:8px;background:var(--blue);color:#416c9f}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  label{display:block;color:#536178;font-size:13px;font-weight:800;margin-bottom:5px}
+  input,textarea,select{width:100%;border:1px solid #cfd9e4;border-radius:10px;padding:10px 11px;font:inherit;color:var(--ink);background:#fff}
+  textarea{min-height:96px;resize:vertical}
+  input:focus,textarea:focus,select:focus{outline:3px solid #dfeeff;border-color:#8bb2dd}
+  .hint{font-size:13px;color:var(--muted);margin-top:6px}
+  .role{padding:12px;border-radius:12px;background:var(--mint);border:1px solid #d7eee6}
+  .role:nth-child(2){background:var(--blue)} .role:nth-child(3){background:var(--peach)} .role:nth-child(4){background:var(--lav)}
+  .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+  table{width:100%;border-collapse:collapse;min-width:920px;background:#fff}
+  th,td{border-bottom:1px solid var(--line);padding:10px;text-align:center;vertical-align:middle}
+  th{background:#f3f6fa;font-size:13px;position:sticky;top:0}
+  td input{min-width:78px;padding:8px}
+  .auto{background:#f6fbff;font-weight:700;color:#3b6897}
+  .status{padding:10px 12px;border-radius:10px;background:var(--yellow);font-size:13px;color:#735f20}
+  .concept-box{margin:12px 0 16px;padding:15px 18px;border-radius:14px;background:var(--lav);border:1px solid #e3dcfb;color:#55497a}
+  .concept-box strong{color:#43376d}
+  .formula{display:inline-block;margin:4px 6px;padding:3px 9px;border-radius:8px;background:#fff;font-weight:800;color:#43376d;border:1px solid #e1daf7}
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .chart-box{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+  canvas{width:100%;height:300px;display:block}
+  .cer{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .cer > div{border-radius:16px;padding:16px;border:1px solid var(--line)}
+  .cer > div:nth-child(1){background:var(--blue)} .cer > div:nth-child(2){background:var(--mint)} .cer > div:nth-child(3){background:var(--peach)}
+  .badge{font-size:12px;font-weight:900;letter-spacing:.05em}
+  .footer-note{font-size:13px;color:var(--muted);text-align:center;margin-top:26px}
+  .danger{color:var(--danger);font-weight:700}
+  .modal-backdrop{display:none;position:fixed;inset:0;z-index:100;background:rgba(38,54,79,.38);align-items:center;justify-content:center;padding:20px}
+  .modal-backdrop.show{display:flex}
+  .modal{width:min(480px,100%);background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 20px 60px rgba(38,54,79,.22)}
+  .modal h3{margin:0 0 8px;font-size:22px}.modal p{margin:0;color:var(--muted)}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;flex-wrap:wrap}
+  .btn-danger{background:#c85a5a;color:#fff}
+  .toast{position:fixed;right:22px;bottom:22px;z-index:110;display:none;background:#26364f;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 10px 26px rgba(38,54,79,.22);font-weight:700}
+  .toast.show{display:block}
+  @media (max-width:850px){.grid2,.grid4,.chart-grid,.cer{grid-template-columns:1fr}.flow{grid-template-columns:repeat(2,1fr)}.flow div:last-child{grid-column:1/-1}.hero{padding:24px}}
+  @media print{body{background:white}.toolbar{display:none}.card,.hero{box-shadow:none;break-inside:avoid}.wrap{max-width:none;padding:0}.flow{display:none}}
+
+.experiment-nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}.experiment-nav a{padding:12px 20px;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--ink);background:white;font-weight:800}.experiment-nav a[aria-current="page"]{background:#456fa9;color:white}@media print{.experiment-nav{display:none}}
+</style>
+</head>
+<body><div class="wrap">
+<nav class="experiment-nav" aria-label="實驗分頁"><a href="index.html">單擺週期實驗</a><a href="sound.html" aria-current="page">聲音距離實驗</a></nav>
+<section class="hero"><span class="tag">數位探究實作</span><span class="tag">Phyphox × CODAP</span><h1>聲音距離實驗紀錄</h1><div class="subtitle">離聲源越遠，量測到的聲音會怎麼變化？以重複量測與環境觀察，解釋真實數據的差異。</div></section>
+<div class="toolbar"><button class="btn-secondary" onclick="saveLocal()">儲存紀錄</button><button class="btn-secondary" onclick="window.print()">列印 / PDF</button><button class="btn-mint" onclick="resetForm()">清除重填</button><button class="btn-primary" onclick="downloadExcel()">下載 Excel（.xlsx）</button></div>
+<section class="card"><h2>① 小組資訊與角色</h2><div class="grid2"><div><label for="group">班級 / 組別</label><input id="group" placeholder="例：第 3 組"></div><div><label for="date">日期</label><input id="date" type="date"></div></div><div class="grid4" style="margin-top:14px"><div><label for="role1">數據採集員</label><input id="role1" placeholder="姓名"></div><div><label for="role2">操作指引員</label><input id="role2" placeholder="姓名"></div><div><label for="role3">紀錄分析員</label><input id="role3" placeholder="姓名"></div><div><label for="role4">發表員</label><input id="role4" placeholder="姓名"></div></div></section>
+<section class="card"><h2>② 探究問題與預測</h2><div class="concept-box"><strong>探究問題：</strong>離聲源越遠，量測到的聲音會怎麼變化？<br>延伸思考：教室牆壁、背景噪音、手機方向會影響結果嗎？</div><div class="grid2"><div><label for="prediction">我的預測</label><textarea id="prediction" placeholder="距離增加時，讀值可能如何改變？"></textarea></div><div><label for="predictionReason">預測理由</label><textarea id="predictionReason" placeholder="用生活經驗或已有知識說明。"></textarea></div></div></section>
+<section class="card"><h2>③ 架設與控制變因</h2><div class="grid4"><div><label for="source">音源 / 播放內容</label><input id="source" placeholder="例：固定音調"></div><div><label for="volume">音源音量設定</label><input id="volume" placeholder="例：音量 50%"></div><div><label for="sensor">感測工具 / 手機型號</label><input id="sensor" placeholder=""></div><div><label for="unit">讀值單位</label><input id="unit" placeholder="依工具顯示填寫，如 dB"></div><div><label for="height">手機與音源高度</label><input id="height" placeholder="例：均為 1 m"></div><div><label for="direction">手機麥克風方向</label><input id="direction" placeholder="例：朝向聲源"></div><div><label for="interval">穩定區段 / 取值方式</label><input id="interval" placeholder="例：第 5–10 秒，使用相同方式取值"></div><div><label for="background">背景噪音 / 場地</label><input id="background" placeholder="例：關閉電扇的教室"></div></div><div class="status" style="margin-top:14px">操作變因：聲源到手機麥克風的距離。應變因：穩定區段的聲音感測讀值。<br>控制變因：同一音源與音量、同一手機與感測設定、相同高度與方向，以及相同取值時間。</div><div class="concept-box">請記錄工具實際顯示的單位。若未校正，讀值適合用於相同裝置與設定下的比較。分貝是對數量；下表平均值是重複讀值的<strong>算術平均</strong>，不是等效連續音壓級（Leq），也不直接代表聲音強度。</div></section>
+<section class="card"><h2>④ 距離與重複量測</h2><p class="hint">在每個距離取得穩定區段的讀值，至少量測兩次，可選填第三次。保留異常讀值並註明可能原因。</p><div class="table-wrap"><table id="dataTable"><thead><tr><th>距離（m）</th><th>量測 1</th><th>量測 2</th><th>量測 3（選填）</th><th>平均讀值</th><th>極差（最大−最小）</th><th>環境 / 異常備註</th><th>操作</th></tr></thead><tbody></tbody></table></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><button class="btn-secondary" onclick="addRow()">＋新增一筆</button><button class="btn-secondary" onclick="fillDemo()">填入示範數據</button></div><p class="hint" id="dataStatus" aria-live="polite"></p></section>
+<section class="card"><h2>⑤ 圖表與判讀</h2><div class="chart-box"><strong>距離與平均聲音讀值</strong><canvas id="chartSound" width="960" height="360" role="img" aria-label="距離與平均聲音讀值折線圖，數據見上方表格"></canvas></div><div class="grid2" style="margin-top:14px"><div><label for="graphFinding">距離增加時，讀值有什麼趨勢？</label><textarea id="graphFinding"></textarea></div><div><label for="repeatFinding">重複量測是否一致？哪些距離差異較大？</label><textarea id="repeatFinding"></textarea></div></div></section>
+<section class="card"><h2>⑥ CER 科學論證</h2><div class="cer"><div><label for="claim">C｜主張</label><textarea id="claim" placeholder="回答距離與聲音讀值的關係。"></textarea></div><div><label for="evidence">E｜證據</label><textarea id="evidence" placeholder="引用至少兩個距離的平均讀值與單位。"></textarea></div><div><label for="reasoning">R｜推理</label><textarea id="reasoning" placeholder="說明證據如何支持主張，並考慮環境因素。"></textarea></div></div></section>
+<section class="card"><h2>⑦ 真實環境與反思</h2><div class="status">核心學習：不必追求「漂亮數據」，而是解釋偏離的可能原因。</div><div class="grid2" style="margin-top:14px"><div><label for="walls">牆壁與反射</label><textarea id="walls" placeholder="距離牆壁或桌面的位置可能如何影響讀值？"></textarea></div><div><label for="noise">背景噪音</label><textarea id="noise" placeholder="是否有人說話、走動或有機器聲？"></textarea></div><div><label for="orientation">手機方向</label><textarea id="orientation" placeholder="麥克風朝向是否一致？"></textarea></div><div><label for="outlier">偏離趨勢的數據</label><textarea id="outlier" placeholder="保留原始數據，說明可能原因。"></textarea></div><div><label for="improve">下次如何改進？</label><textarea id="improve" placeholder="提出可以實際操作的改進方式。"></textarea></div><div><label for="extension">延伸探究</label><textarea id="extension" placeholder="如何一次只改變一項因素來檢驗你的解釋？"></textarea></div></div><label for="oneSentence" style="margin-top:14px">小組一句話結論</label><input id="oneSentence"></section>
+<div class="footer-note">請按「儲存紀錄」保存在目前瀏覽器；聲音與單擺紀錄分開儲存。完整紀錄可下載為 Excel。</div></div>
+<script>
+const KEY='soundDistanceRecordV1', DISTANCES=[0.5,1,2,4];
+const ids=[...document.querySelectorAll('.card input[id],.card textarea[id]')].map(el=>el.id);
+function number(value){return value.trim()===''?null:(Number.isFinite(Number(value))?Number(value):null)}
+function summarize(row){const values=[row.v1,row.v2,row.v3].map(number).filter(v=>v!==null);return {count:values.length,mean:values.length?values.reduce((a,b)=>a+b,0)/values.length:null,range:values.length>=2?Math.max(...values)-Math.min(...values):null}}
+function rowsData(){return [...document.querySelectorAll('#dataTable tbody tr')].map(tr=>Object.fromEntries([...tr.querySelectorAll('input')].map(el=>[el.dataset.key,el.value])))}
+function addRow(row={}){const tr=document.createElement('tr');for(const key of ['distance','v1','v2','v3','mean','range','note','remove']){const td=document.createElement('td');if(key==='mean'||key==='range'){td.className='auto '+key}else if(key==='remove'){const b=document.createElement('button');b.textContent='刪除';b.className='btn-secondary';b.onclick=()=>{tr.remove();updateAll()};td.append(b)}else{const input=document.createElement('input');input.dataset.key=key;input.type=key==='note'?'text':'number';input.setAttribute('aria-label',({distance:'距離（m）',v1:'量測 1',v2:'量測 2',v3:'量測 3',note:'環境與異常備註'})[key]);if(key!=='note')input.step='any';if(key==='distance')input.min='0.001';input.value=row[key]??'';input.addEventListener('input',updateAll);td.append(input)}tr.append(td)}document.querySelector('#dataTable tbody').append(tr);updateAll()}
+function updateAll(){const rows=rowsData();document.querySelectorAll('#dataTable tbody tr').forEach((tr,i)=>{const s=summarize(rows[i]);tr.querySelector('.mean').textContent=s.mean===null?'—':s.mean.toFixed(2);tr.querySelector('.range').textContent=s.range===null?'—':s.range.toFixed(2)});document.getElementById('dataStatus').textContent='讀值單位：'+(document.getElementById('unit').value||'未指定')+'。平均值以已填讀值計算；只有一次量測時，請補測以比較差異。距離需大於 0 才會繪圖。';drawChart(rows)}
+function drawChart(rows){const c=document.getElementById('chartSound'),ctx=c.getContext('2d'),W=c.width,H=c.height;ctx.clearRect(0,0,W,H);const points=rows.map(r=>({x:number(r.distance),y:summarize(r).mean})).filter(p=>p.x!==null&&p.x>0&&p.y!==null).sort((a,b)=>a.x-b.x);ctx.font='16px Microsoft JhengHei';ctx.fillStyle='#536178';if(!points.length){ctx.fillText('輸入有效距離與量測讀值後，圖表會自動出現。',65,160);return}const maxX=Math.max(...points.map(p=>p.x))*1.1,minY=Math.min(0,...points.map(p=>p.y)),maxY=Math.max(0,...points.map(p=>p.y)),span=maxY-minY||1,lo=minY-span*.1,hi=maxY+span*.15;const X=x=>80+x/maxX*(W-110),Y=y=>H-60-(y-lo)/(hi-lo)*(H-110);ctx.strokeStyle='#dfe7ef';for(let i=0;i<=5;i++){const y=lo+(hi-lo)*i/5;ctx.beginPath();ctx.moveTo(80,Y(y));ctx.lineTo(W-30,Y(y));ctx.stroke();ctx.fillText(y.toFixed(1),15,Y(y)+5);ctx.fillText((maxX*i/5).toFixed(2),X(maxX*i/5)-16,H-36)}ctx.fillText('距離（m）',W/2-40,H-8);ctx.fillText('平均讀值（'+(document.getElementById('unit').value||'未指定單位')+'）',80,25);ctx.strokeStyle='#4c9e87';ctx.lineWidth=2;ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(X(p.x),Y(p.y)):ctx.moveTo(X(p.x),Y(p.y)));ctx.stroke();for(const p of points){ctx.beginPath();ctx.arc(X(p.x),Y(p.y),5,0,Math.PI*2);ctx.fillStyle='#4c9e87';ctx.fill()}}
+function getForm(){return {...Object.fromEntries(ids.map(id=>[id,document.getElementById(id).value])),rows:rowsData()}}
+function setForm(f){ids.forEach(id=>document.getElementById(id).value=f[id]??'');document.querySelector('#dataTable tbody').replaceChildren();(Array.isArray(f.rows)?f.rows:DISTANCES.map(distance=>({distance}))).forEach(addRow);updateAll()}
+function defaults(){return {date:new Date().toLocaleDateString('sv-SE'),sensor:'Phyphox 聲音感測',unit:'dB',rows:DISTANCES.map(distance=>({distance}))}}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(getForm()));alert('聲音實驗紀錄已儲存在此瀏覽器。')}catch(e){alert('無法儲存，請下載 Excel 保留紀錄。')}}
+function resetForm(){if(!confirm('確定清除聲音實驗紀錄？此操作會清除本頁資料與已儲存的聲音紀錄。'))return;try{localStorage.removeItem(KEY)}catch(e){}setForm(defaults())}
+function fillDemo(){if(!confirm('將以圖片中的示範數據取代目前量測表，是否繼續？'))return;document.querySelector('#dataTable tbody').replaceChildren();[[.5,76,75],[1,70,71],[2,65,64],[4,61,60]].forEach(([distance,v1,v2])=>addRow({distance,v1,v2,note:'示範數據，非本組實測'}));updateAll()}
+function downloadExcel(){if(typeof XLSX==='undefined'){alert('Excel 元件尚未載入，請確認網路連線後再試一次。');return}const f=getForm(),wb=XLSX.utils.book_new();const info=ids.map(id=>[document.querySelector('label[for="'+id+'"]').textContent,f[id]]);const data=[['距離（m）','量測 1','量測 2','量測 3','平均讀值','極差','備註','單位'],...f.rows.map(r=>{const s=summarize(r);return [number(r.distance),number(r.v1),number(r.v2),number(r.v3),s.mean,s.range,r.note,f.unit]})];for(const [name,rows] of [['實驗紀錄',info],['量測數據',data]]){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=name==='實驗紀錄'?[{wch:30},{wch:75}]:Array.from({length:8},(_,i)=>({wch:i===6?40:16}));XLSX.utils.book_append_sheet(wb,ws,name)}XLSX.writeFile(wb,'聲音距離實驗紀錄_'+(f.group||'未命名組別').replace(/[\\/:*?"<>|]/g,'_')+'.xlsx')}
+document.getElementById('unit').addEventListener('input',updateAll);
+try{const saved=JSON.parse(localStorage.getItem(KEY));setForm(saved&&typeof saved==='object'?saved:defaults())}catch(e){setForm(defaults())}
+</script></body></html>

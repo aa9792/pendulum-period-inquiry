@@ -70,10 +70,13 @@
   .toast.show{display:block}
   @media (max-width:850px){.grid2,.grid4,.chart-grid,.cer{grid-template-columns:1fr}.flow{grid-template-columns:repeat(2,1fr)}.flow div:last-child{grid-column:1/-1}.hero{padding:24px}}
   @media print{body{background:white}.toolbar{display:none}.card,.hero{box-shadow:none;break-inside:avoid}.wrap{max-width:none;padding:0}.flow{display:none}}
+
+.experiment-nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}.experiment-nav a{padding:12px 20px;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--ink);background:white;font-weight:800}.experiment-nav a[aria-current="page"]{background:#456fa9;color:white}@media print{.experiment-nav{display:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
+<nav class="experiment-nav" aria-label="實驗分頁"><a href="index.html" aria-current="page">單擺週期實驗</a><a href="sound.html">聲音距離實驗</a></nav>
   <section class="hero">
     <span class="tag">數位探究實作</span><span class="tag">Phyphox × CODAP</span>
     <h1>單擺週期實驗紀錄</h1>
