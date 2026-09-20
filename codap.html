@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CODAP 資料探索｜數位探究</title>
+
+<style>
+  :root{
+    --ink:#26364f; --muted:#6f7d93; --line:#dfe7ef; --bg:#f7f9fc; --card:#ffffff;
+    --blue:#eaf3ff; --blue-strong:#4f84c4; --mint:#eaf8f3; --mint-strong:#4c9e87;
+    --peach:#fff1e7; --peach-strong:#c9824a; --lav:#f1edff; --lav-strong:#8067c5;
+    --yellow:#fff9df; --danger:#c85a5a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;line-height:1.6}
+  .wrap{max-width:1180px;margin:auto;padding:28px 22px 70px}
+  .hero{background:linear-gradient(120deg,var(--blue),var(--mint));border:1px solid var(--line);border-radius:24px;padding:30px 34px;box-shadow:0 8px 24px rgba(58,83,118,.06)}
+  h1{margin:0 0 8px;font-size:clamp(28px,4vw,46px);letter-spacing:.02em}
+  .subtitle{color:var(--muted);font-size:18px}
+  .flow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:22px}
+  .flow div{padding:10px 8px;border-radius:12px;text-align:center;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff}
+  .flow div:nth-child(1),.flow div:nth-child(5){background:var(--blue)}
+  .flow div:nth-child(2),.flow div:nth-child(6){background:var(--mint)}
+  .flow div:nth-child(3){background:var(--peach)}
+  .flow div:nth-child(4),.flow div:nth-child(7){background:var(--lav)}
+  .toolbar{position:sticky;top:0;z-index:10;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;padding:14px 0;background:rgba(247,249,252,.94);backdrop-filter:blur(8px)}
+  button{border:0;border-radius:12px;padding:11px 16px;font-size:15px;font-weight:800;cursor:pointer}
+  .btn-primary{background:#456fa9;color:white}
+  .btn-secondary{background:white;border:1px solid var(--line);color:var(--ink)}
+  .btn-mint{background:#5caa92;color:white}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;margin:18px 0;box-shadow:0 6px 18px rgba(66,84,112,.04)}
+  .card h2{margin:0 0 16px;font-size:23px}
+  .tag{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:800;margin-right:8px;background:var(--blue);color:#416c9f}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  label{display:block;color:#536178;font-size:13px;font-weight:800;margin-bottom:5px}
+  input,textarea,select{width:100%;border:1px solid #cfd9e4;border-radius:10px;padding:10px 11px;font:inherit;color:var(--ink);background:#fff}
+  textarea{min-height:96px;resize:vertical}
+  input:focus,textarea:focus,select:focus{outline:3px solid #dfeeff;border-color:#8bb2dd}
+  .hint{font-size:13px;color:var(--muted);margin-top:6px}
+  .role{padding:12px;border-radius:12px;background:var(--mint);border:1px solid #d7eee6}
+  .role:nth-child(2){background:var(--blue)} .role:nth-child(3){background:var(--peach)} .role:nth-child(4){background:var(--lav)}
+  .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+  table{width:100%;border-collapse:collapse;min-width:920px;background:#fff}
+  th,td{border-bottom:1px solid var(--line);padding:10px;text-align:center;vertical-align:middle}
+  th{background:#f3f6fa;font-size:13px;position:sticky;top:0}
+  td input{min-width:78px;padding:8px}
+  .auto{background:#f6fbff;font-weight:700;color:#3b6897}
+  .status{padding:10px 12px;border-radius:10px;background:var(--yellow);font-size:13px;color:#735f20}
+  .concept-box{margin:12px 0 16px;padding:15px 18px;border-radius:14px;background:var(--lav);border:1px solid #e3dcfb;color:#55497a}
+  .concept-box strong{color:#43376d}
+  .formula{display:inline-block;margin:4px 6px;padding:3px 9px;border-radius:8px;background:#fff;font-weight:800;color:#43376d;border:1px solid #e1daf7}
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .chart-box{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+  canvas{width:100%;height:300px;display:block}
+  .cer{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .cer > div{border-radius:16px;padding:16px;border:1px solid var(--line)}
+  .cer > div:nth-child(1){background:var(--blue)} .cer > div:nth-child(2){background:var(--mint)} .cer > div:nth-child(3){background:var(--peach)}
+  .badge{font-size:12px;font-weight:900;letter-spacing:.05em}
+  .footer-note{font-size:13px;color:var(--muted);text-align:center;margin-top:26px}
+  .danger{color:var(--danger);font-weight:700}
+  .modal-backdrop{display:none;position:fixed;inset:0;z-index:100;background:rgba(38,54,79,.38);align-items:center;justify-content:center;padding:20px}
+  .modal-backdrop.show{display:flex}
+  .modal{width:min(480px,100%);background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 20px 60px rgba(38,54,79,.22)}
+  .modal h3{margin:0 0 8px;font-size:22px}.modal p{margin:0;color:var(--muted)}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;flex-wrap:wrap}
+  .btn-danger{background:#c85a5a;color:#fff}
+  .toast{position:fixed;right:22px;bottom:22px;z-index:110;display:none;background:#26364f;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 10px 26px rgba(38,54,79,.22);font-weight:700}
+  .toast.show{display:block}
+  @media (max-width:850px){.grid2,.grid4,.chart-grid,.cer{grid-template-columns:1fr}.flow{grid-template-columns:repeat(2,1fr)}.flow div:last-child{grid-column:1/-1}.hero{padding:24px}}
+  @media print{body{background:white}.toolbar{display:none}.card,.hero{box-shadow:none;break-inside:avoid}.wrap{max-width:none;padding:0}.flow{display:none}}
+
+.experiment-nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}.experiment-nav a{padding:12px 20px;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--ink);background:white;font-weight:800}.experiment-nav a[aria-current="page"]{background:#456fa9;color:white}@media print{.experiment-nav{display:none}}
+</style>
+</head>
+<body><div class="wrap"><nav class="experiment-nav" aria-label="實驗分頁"><a href="index.html">單擺週期實驗</a><a href="sound.html">聲音距離實驗</a><a href="codap.html" aria-current="page">CODAP 資料探索</a></nav>
+<section class="hero"><span class="tag">數位探究實作</span><span class="tag">CODAP</span><h1>CODAP 資料探索</h1><div class="subtitle">從實驗紀錄出發，練習以資料與圖表尋找規律。</div></section>
+<section class="card"><h2>開始使用 CODAP</h2><p>前往 CODAP 官方入門頁，查看互動教學、基礎操作、示範資料與影片。</p><a href="https://codap.concord.org/get-started/" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display:inline-block;padding:14px 24px;border-radius:12px;text-decoration:none;font-weight:800">開啟 CODAP 官方入門頁 ↗</a><p class="hint">連結會在新分頁開啟，方便對照實驗紀錄。切換實驗前，請先按該頁的「儲存紀錄」。</p></section>
+<section class="card"><h2>搭配實驗進行資料探索</h2><div class="grid2"><div class="concept-box"><strong>單擺週期實驗</strong><p>比較擺長 L 與週期 T、週期平方 T² 的關係，觀察哪一張圖更接近直線。</p><a href="index.html">回到單擺週期紀錄 →</a></div><div class="concept-box"><strong>聲音距離實驗</strong><p>比較距離與平均聲音讀值，觀察重複量測的差異，思考環境對數據的影響。</p><a href="sound.html">回到聲音距離紀錄 →</a></div></div></section>
+<div class="footer-note">完成圖表探索後，回到實驗分頁記錄你的發現與 CER 論證。</div></div></body></html>
