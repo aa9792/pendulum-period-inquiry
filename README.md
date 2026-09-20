@@ -1,0 +1,20 @@
+# 單擺週期數位探究實驗紀錄
+
+以 Phyphox 與 CODAP 探究活動為主題的繁體中文實驗紀錄網頁，包含 T²（週期平方）說明。
+
+## 使用方式
+
+開啟 https://aa9792.github.io/pendulum-period-inquiry/ ，或下載 index.html 後以瀏覽器開啟。
+
+## 功能
+
+- 記錄小組資訊、預測、控制變因及實驗數據。
+- 自動計算週期 T 與 T²，繪製 L–T 與 L–T² 圖。
+- 填寫 CER 科學論證與實驗反思。
+- 在目前瀏覽器儲存紀錄、列印或匯出 Excel。
+
+資料儲存在使用者的瀏覽器中。Excel 匯出使用 jsDelivr 提供的 SheetJS，需要網路連線。
+
+## 部署
+
+本專案為靜態網頁；GitHub Pages 從 main 分支根目錄發佈。

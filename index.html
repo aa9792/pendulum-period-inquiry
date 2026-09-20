@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>單擺週期 × Phyphox × CODAP｜實驗紀錄</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --ink:#26364f; --muted:#6f7d93; --line:#dfe7ef; --bg:#f7f9fc; --card:#ffffff;
+    --blue:#eaf3ff; --blue-strong:#4f84c4; --mint:#eaf8f3; --mint-strong:#4c9e87;
+    --peach:#fff1e7; --peach-strong:#c9824a; --lav:#f1edff; --lav-strong:#8067c5;
+    --yellow:#fff9df; --danger:#c85a5a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;line-height:1.6}
+  .wrap{max-width:1180px;margin:auto;padding:28px 22px 70px}
+  .hero{background:linear-gradient(120deg,var(--blue),var(--mint));border:1px solid var(--line);border-radius:24px;padding:30px 34px;box-shadow:0 8px 24px rgba(58,83,118,.06)}
+  h1{margin:0 0 8px;font-size:clamp(28px,4vw,46px);letter-spacing:.02em}
+  .subtitle{color:var(--muted);font-size:18px}
+  .flow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:22px}
+  .flow div{padding:10px 8px;border-radius:12px;text-align:center;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff}
+  .flow div:nth-child(1),.flow div:nth-child(5){background:var(--blue)}
+  .flow div:nth-child(2),.flow div:nth-child(6){background:var(--mint)}
+  .flow div:nth-child(3){background:var(--peach)}
+  .flow div:nth-child(4),.flow div:nth-child(7){background:var(--lav)}
+  .toolbar{position:sticky;top:0;z-index:10;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;padding:14px 0;background:rgba(247,249,252,.94);backdrop-filter:blur(8px)}
+  button{border:0;border-radius:12px;padding:11px 16px;font-size:15px;font-weight:800;cursor:pointer}
+  .btn-primary{background:#456fa9;color:white}
+  .btn-secondary{background:white;border:1px solid var(--line);color:var(--ink)}
+  .btn-mint{background:#5caa92;color:white}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;margin:18px 0;box-shadow:0 6px 18px rgba(66,84,112,.04)}
+  .card h2{margin:0 0 16px;font-size:23px}
+  .tag{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:800;margin-right:8px;background:var(--blue);color:#416c9f}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  label{display:block;color:#536178;font-size:13px;font-weight:800;margin-bottom:5px}
+  input,textarea,select{width:100%;border:1px solid #cfd9e4;border-radius:10px;padding:10px 11px;font:inherit;color:var(--ink);background:#fff}
+  textarea{min-height:96px;resize:vertical}
+  input:focus,textarea:focus,select:focus{outline:3px solid #dfeeff;border-color:#8bb2dd}
+  .hint{font-size:13px;color:var(--muted);margin-top:6px}
+  .role{padding:12px;border-radius:12px;background:var(--mint);border:1px solid #d7eee6}
+  .role:nth-child(2){background:var(--blue)} .role:nth-child(3){background:var(--peach)} .role:nth-child(4){background:var(--lav)}
+  .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+  table{width:100%;border-collapse:collapse;min-width:920px;background:#fff}
+  th,td{border-bottom:1px solid var(--line);padding:10px;text-align:center;vertical-align:middle}
+  th{background:#f3f6fa;font-size:13px;position:sticky;top:0}
+  td input{min-width:78px;padding:8px}
+  .auto{background:#f6fbff;font-weight:700;color:#3b6897}
+  .status{padding:10px 12px;border-radius:10px;background:var(--yellow);font-size:13px;color:#735f20}
+  .concept-box{margin:12px 0 16px;padding:15px 18px;border-radius:14px;background:var(--lav);border:1px solid #e3dcfb;color:#55497a}
+  .concept-box strong{color:#43376d}
+  .formula{display:inline-block;margin:4px 6px;padding:3px 9px;border-radius:8px;background:#fff;font-weight:800;color:#43376d;border:1px solid #e1daf7}
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .chart-box{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+  canvas{width:100%;height:300px;display:block}
+  .cer{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .cer > div{border-radius:16px;padding:16px;border:1px solid var(--line)}
+  .cer > div:nth-child(1){background:var(--blue)} .cer > div:nth-child(2){background:var(--mint)} .cer > div:nth-child(3){background:var(--peach)}
+  .badge{font-size:12px;font-weight:900;letter-spacing:.05em}
+  .footer-note{font-size:13px;color:var(--muted);text-align:center;margin-top:26px}
+  .danger{color:var(--danger);font-weight:700}
+  .modal-backdrop{display:none;position:fixed;inset:0;z-index:100;background:rgba(38,54,79,.38);align-items:center;justify-content:center;padding:20px}
+  .modal-backdrop.show{display:flex}
+  .modal{width:min(480px,100%);background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 20px 60px rgba(38,54,79,.22)}
+  .modal h3{margin:0 0 8px;font-size:22px}.modal p{margin:0;color:var(--muted)}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;flex-wrap:wrap}
+  .btn-danger{background:#c85a5a;color:#fff}
+  .toast{position:fixed;right:22px;bottom:22px;z-index:110;display:none;background:#26364f;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 10px 26px rgba(38,54,79,.22);font-weight:700}
+  .toast.show{display:block}
+  @media (max-width:850px){.grid2,.grid4,.chart-grid,.cer{grid-template-columns:1fr}.flow{grid-template-columns:repeat(2,1fr)}.flow div:last-child{grid-column:1/-1}.hero{padding:24px}}
+  @media print{body{background:white}.toolbar{display:none}.card,.hero{box-shadow:none;break-inside:avoid}.wrap{max-width:none;padding:0}.flow{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <span class="tag">數位探究實作</span><span class="tag">Phyphox × CODAP</span>
+    <h1>單擺週期實驗紀錄</h1>
+    <div class="subtitle">從預測、感測、取值、繪圖到 CER 論證；每一步都留下可回看、可下載的探究證據。</div>
+    <div class="flow">
+      <div>0–5<br>預測</div><div>5–10<br>架設</div><div>10–18<br>採集</div><div>18–23<br>取值</div><div>23–28<br>匯出</div><div>28–35<br>繪圖</div><div>35–40<br>論證</div>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <button class="btn-secondary" onclick="saveLocal()">儲存紀錄</button>
+    <button class="btn-secondary" onclick="window.print()">列印 / PDF</button>
+    <button class="btn-mint" type="button" onclick="openResetModal()">清除重填</button>
+    <button class="btn-primary" onclick="downloadExcel()">下載 Excel（.xlsx）</button>
+  </div>
+
+  <section class="card">
+    <h2>① 小組資訊與角色</h2>
+    <div class="grid2">
+      <div><label>班級 / 組別</label><input id="group" placeholder="例：第 3 組" /></div>
+      <div><label>日期</label><input id="date" type="date" /></div>
+    </div>
+    <div class="grid4" style="margin-top:14px">
+      <div class="role"><label>數據採集員</label><input id="role1" placeholder="姓名" /></div>
+      <div class="role"><label>操作指引員</label><input id="role2" placeholder="姓名" /></div>
+      <div class="role"><label>紀錄分析員</label><input id="role3" placeholder="姓名" /></div>
+      <div class="role"><label>發表員</label><input id="role4" placeholder="姓名" /></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>② 預測：你認為擺長 L 與週期 T 的關係是什麼？</h2>
+    <div class="grid2">
+      <div><label>我的預測</label><textarea id="prediction" placeholder="例：擺長越長，週期越長；但不確定是不是成正比。"></textarea></div>
+      <div><label>理由 / 生活經驗</label><textarea id="predictionReason" placeholder="先不用公式，用你目前的想法說明。"></textarea></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>③ 架設與控制變因</h2>
+    <div class="grid4">
+      <div><label>擺錘 / 重物</label><input id="bob" placeholder="例：金屬螺帽" /></div>
+      <div><label>釋放角度</label><input id="angle" type="number" step="0.1" placeholder="例：10" /><div class="hint">建議維持小角度</div></div>
+      <div><label>每次波形觀察時間（s）</label><input id="duration" type="number" step="0.1" placeholder="例：15" /></div>
+      <div><label>感測工具</label><input id="sensor" value="Phyphox 加速度計" /></div>
+    </div>
+    <div class="status" style="margin-top:14px">提醒：擺長請量到「擺錘重心」，並盡量維持相同釋放角度與相同測量方式。</div>
+  </section>
+
+  <section class="card">
+    <h2>④ 數據採集與週期計算</h2>
+    <p class="hint">建議從波形挑選「相同位置的波峰」。用第一個峰值時間與最後一個峰值時間做多週期平均，比只抓相鄰兩峰更穩定。</p>
+    <div class="concept-box">
+      <strong>💡 T² 是什麼？</strong><br>
+      T² 讀作「T 的平方」，意思是 <span class="formula">T² = T × T</span>，不是「2T」也不是「擺動兩次的時間」。<br>
+      例如：若週期 <strong>T = 1.2 秒</strong>，則 <span class="formula">T² = 1.2 × 1.2 = 1.44 秒²</span>。
+      在這個實驗中，我們比較 L–T 與 L–T² 圖，看看哪一種關係更接近直線。
+    </div>
+    <div class="table-wrap">
+      <table id="dataTable">
+        <thead><tr><th>擺長 L<br>(cm)</th><th>第一峰時間 t₁<br>(s)</th><th>最後峰時間 t₂<br>(s)</th><th>週期間隔數 n</th><th>週期 T=(t₂−t₁)/n<br>(s)</th><th>週期平方 T²<br>（T × T，s²）</th><th>備註 / 異常</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn-secondary" onclick="addRow()">＋新增一筆</button>
+      <button class="btn-secondary" onclick="fillDemo()">填入示範數據</button>
+      <button class="btn-secondary" onclick="updateAll()">重新計算並繪圖</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>⑤ 圖表判讀：L–T 與 L–T²（週期平方）</h2>
+    <div class="chart-grid">
+      <div class="chart-box"><strong>圖 A｜擺長 L vs. 週期 T</strong><canvas id="chartT" width="520" height="300"></canvas></div>
+      <div class="chart-box"><strong>圖 B｜擺長 L vs. 週期平方 T²（T × T）</strong><canvas id="chartT2" width="520" height="300"></canvas></div>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div><label>哪一張圖比較接近直線？</label><select id="linearChoice"><option value="">請選擇</option><option>圖 A：L–T</option><option>圖 B：L–T²（週期平方）</option><option>兩者都不是很明顯</option></select></div>
+      <div><label>你從圖上發現什麼規律？</label><input id="graphFinding" placeholder="例：T² 與 L 接近線性關係" /></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>⑥ CER 科學論證</h2>
+    <div class="cer">
+      <div><div class="badge">C｜CLAIM 主張</div><textarea id="claim" placeholder="回答：擺長改變時，週期如何變化？"></textarea></div>
+      <div><div class="badge">E｜EVIDENCE 證據</div><textarea id="evidence" placeholder="至少引用兩筆數據或圖表趨勢。"></textarea></div>
+      <div><div class="badge">R｜REASONING 推理</div><textarea id="reasoning" placeholder="說明為什麼這些證據支持你的主張。"></textarea></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>⑦ 異常數據與反思</h2>
+    <div class="grid2">
+      <div><label>哪一筆數據最可能是離群值？為什麼？</label><textarea id="outlier"></textarea></div>
+      <div><label>如果重做一次，你會改進哪個步驟？</label><textarea id="improve"></textarea></div>
+    </div>
+    <div style="margin-top:14px"><label>小組一句話結論</label><input id="oneSentence" placeholder="用一句完整句子說明你們的發現。" /></div>
+  </section>
+
+  <div class="footer-note">本頁資料只會保存在目前瀏覽器；如要帶走完整紀錄，請使用「下載 Excel（.xlsx）」。</div>
+</div>
+
+<div class="modal-backdrop" id="resetModal" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+  <div class="modal">
+    <h3 id="resetTitle">確定要清除目前紀錄嗎？</h3>
+    <p>將清除本頁已輸入的資料與瀏覽器暫存紀錄，並重新建立 20、30、40、50、60 cm 的空白實驗列。</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" type="button" onclick="closeResetModal()">取消</button>
+      <button class="btn-danger" type="button" onclick="resetForm()">確定清除並重填</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast">已清除，可以重新填寫。</div>
+
+<script>
+const DEFAULT_LENGTHS=[20,30,40,50,60];
+const ids=['group','date','role1','role2','role3','role4','prediction','predictionReason','bob','angle','duration','sensor','linearChoice','graphFinding','claim','evidence','reasoning','outlier','improve','oneSentence'];
+
+function addRow(vals={}){
+  const tb=document.querySelector('#dataTable tbody');
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><input class="L" type="number" step="0.1" value="${vals.L??''}" oninput="updateAll()"></td>
+    <td><input class="t1" type="number" step="0.001" value="${vals.t1??''}" oninput="updateRow(this)"></td>
+    <td><input class="t2" type="number" step="0.001" value="${vals.t2??''}" oninput="updateRow(this)"></td>
+    <td><input class="n" type="number" min="1" step="1" value="${vals.n??''}" oninput="updateRow(this)"></td>
+    <td class="auto T"></td><td class="auto T2"></td>
+    <td><input class="note" value="${vals.note??''}"></td>`;
+  tb.appendChild(tr); updateRow(tr.querySelector('.L'));
+}
+function updateRow(el){
+  const tr=el.closest('tr');
+  const t1=parseFloat(tr.querySelector('.t1').value),t2=parseFloat(tr.querySelector('.t2').value),n=parseFloat(tr.querySelector('.n').value);
+  let T=''; if(Number.isFinite(t1)&&Number.isFinite(t2)&&Number.isFinite(n)&&n>0&&t2>t1) T=(t2-t1)/n;
+  tr.querySelector('.T').textContent=T===''?'':T.toFixed(3);
+  tr.querySelector('.T2').textContent=T===''?'':(T*T).toFixed(3);
+  drawCharts();
+}
+function updateAll(){document.querySelectorAll('#dataTable tbody tr').forEach(tr=>updateRow(tr.querySelector('.L')));drawCharts()}
+function rowsData(){return [...document.querySelectorAll('#dataTable tbody tr')].map(tr=>({L:+tr.querySelector('.L').value,t1:+tr.querySelector('.t1').value,t2:+tr.querySelector('.t2').value,n:+tr.querySelector('.n').value,T:parseFloat(tr.querySelector('.T').textContent),T2:parseFloat(tr.querySelector('.T2').textContent),note:tr.querySelector('.note').value}));}
+
+function drawScatter(canvasId,points,xLabel,yLabel){
+  const c=document.getElementById(canvasId),ctx=c.getContext('2d');
+  const W=c.width,H=c.height,pad={l:58,r:18,t:22,b:48}; ctx.clearRect(0,0,W,H); ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  if(!points.length){ctx.fillStyle='#8a96a8';ctx.font='15px Microsoft JhengHei';ctx.fillText('輸入有效數據後，圖表會自動出現。',70,150);return}
+  const xs=points.map(p=>p.x),ys=points.map(p=>p.y),xmin=0,xmax=Math.max(...xs)*1.12||1,ymin=0,ymax=Math.max(...ys)*1.15||1;
+  const X=x=>pad.l+(x-xmin)/(xmax-xmin)*(W-pad.l-pad.r),Y=y=>H-pad.b-(y-ymin)/(ymax-ymin)*(H-pad.t-pad.b);
+  ctx.strokeStyle='#cfd9e4';ctx.lineWidth=1; ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,H-pad.b);ctx.lineTo(W-pad.r,H-pad.b);ctx.stroke();
+  ctx.fillStyle='#6f7d93';ctx.font='12px Microsoft JhengHei'; for(let i=0;i<=5;i++){let xv=xmax*i/5,yv=ymax*i/5;ctx.fillText(xv.toFixed(xmax<10?1:0),X(xv)-8,H-pad.b+18);ctx.fillText(yv.toFixed(ymax<10?2:1),8,Y(yv)+4);}
+  ctx.fillStyle='#26364f';ctx.font='13px Microsoft JhengHei';ctx.fillText(xLabel,W/2-30,H-10);ctx.save();ctx.translate(15,H/2+35);ctx.rotate(-Math.PI/2);ctx.fillText(yLabel,0,0);ctx.restore();
+  ctx.strokeStyle='#4f84c4';ctx.lineWidth=2;ctx.beginPath();points.slice().sort((a,b)=>a.x-b.x).forEach((p,i)=>{i?ctx.lineTo(X(p.x),Y(p.y)):ctx.moveTo(X(p.x),Y(p.y))});ctx.stroke();
+  points.forEach(p=>{ctx.fillStyle='#4f84c4';ctx.beginPath();ctx.arc(X(p.x),Y(p.y),5,0,Math.PI*2);ctx.fill()});
+}
+function drawCharts(){const d=rowsData().filter(r=>Number.isFinite(r.L)&&r.L>0&&Number.isFinite(r.T));drawScatter('chartT',d.map(r=>({x:r.L,y:r.T})),'擺長 L (cm)','週期 T (s)');drawScatter('chartT2',d.map(r=>({x:r.L,y:r.T2})),'擺長 L (cm)','週期平方 T² (s²)')}
+
+function getForm(){const o={};ids.forEach(id=>o[id]=document.getElementById(id).value);o.rows=rowsData();return o}
+function setForm(o){ids.forEach(id=>{if(o[id]!==undefined)document.getElementById(id).value=o[id]});document.querySelector('#dataTable tbody').innerHTML='';(o.rows||[]).forEach(addRow);if(!(o.rows||[]).length)DEFAULT_LENGTHS.forEach(L=>addRow({L}));updateAll()}
+function saveLocal(){localStorage.setItem('pendulumRecordV1',JSON.stringify(getForm()));alert('已儲存在此瀏覽器。')}
+function openResetModal(){
+  const modal=document.getElementById('resetModal');
+  modal.classList.add('show');
+}
+function closeResetModal(){
+  document.getElementById('resetModal').classList.remove('show');
+}
+function showToast(msg='已清除，可以重新填寫。'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+function resetForm(){
+  try{localStorage.removeItem('pendulumRecordV1')}catch(e){}
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    if(el.tagName==='SELECT') el.selectedIndex=0;
+    else el.value='';
+  });
+  document.getElementById('sensor').value='Phyphox 加速度計';
+  document.getElementById('date').value=new Date().toISOString().slice(0,10);
+  const tb=document.querySelector('#dataTable tbody');
+  tb.innerHTML='';
+  DEFAULT_LENGTHS.forEach(L=>addRow({L}));
+  drawCharts();
+  closeResetModal();
+  showToast();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+// 點擊遮罩空白處也可關閉
+document.addEventListener('click',e=>{if(e.target&&e.target.id==='resetModal')closeResetModal()});
+function fillDemo(){const demo=[{L:20,t1:0.50,t2:8.60,n:9},{L:30,t1:0.45,t2:10.35,n:9},{L:40,t1:0.60,t2:12.03,n:9},{L:50,t1:0.55,t2:13.33,n:9},{L:60,t1:0.40,t2:14.35,n:9}];document.querySelector('#dataTable tbody').innerHTML='';demo.forEach(addRow);updateAll()}
+
+function downloadExcel(){
+  if(typeof XLSX==='undefined'){alert('Excel 元件尚未載入，請確認網路連線後再試一次。');return}
+  const f=getForm();
+  const basic=[['單擺週期數位探究實驗紀錄',''],['班級/組別',f.group],['日期',f.date],['數據採集員',f.role1],['操作指引員',f.role2],['紀錄分析員',f.role3],['發表員',f.role4],[],['預測',f.prediction],['預測理由',f.predictionReason],[],['擺錘/重物',f.bob],['釋放角度',f.angle],['波形觀察時間(s)',f.duration],['感測工具',f.sensor]];
+  const data=[['擺長 L(cm)','第一峰 t1(s)','最後峰 t2(s)','週期間隔數 n','週期 T(s)','週期平方 T² = T×T (s²)','備註/異常'],...f.rows.map(r=>[r.L||'',r.t1||'',r.t2||'',r.n||'',Number.isFinite(r.T)?+r.T.toFixed(3):'',Number.isFinite(r.T2)?+r.T2.toFixed(3):'',r.note])];
+  const analysis=[['圖表判讀',''],['較接近直線',f.linearChoice],['圖表發現',f.graphFinding],[],['CER 科學論證',''],['C｜主張',f.claim],['E｜證據',f.evidence],['R｜推理',f.reasoning],[],['異常數據/離群值',f.outlier],['下次改進',f.improve],['小組一句話結論',f.oneSentence]];
+  const wb=XLSX.utils.book_new(),ws1=XLSX.utils.aoa_to_sheet(basic),ws2=XLSX.utils.aoa_to_sheet(data),ws3=XLSX.utils.aoa_to_sheet(analysis);
+  ws1['!cols']=[{wch:22},{wch:60}];ws2['!cols']=[{wch:14},{wch:15},{wch:15},{wch:16},{wch:14},{wch:14},{wch:36}];ws3['!cols']=[{wch:22},{wch:72}];
+  XLSX.utils.book_append_sheet(wb,ws1,'基本資料');XLSX.utils.book_append_sheet(wb,ws2,'實驗數據');XLSX.utils.book_append_sheet(wb,ws3,'分析與CER');
+  const safe=(f.group||'未命名組別').replace(/[\\/:*?"<>|]/g,'_');XLSX.writeFile(wb,`單擺週期實驗紀錄_${safe}.xlsx`);
+}
+
+(function init(){const saved=localStorage.getItem('pendulumRecordV1');if(saved){try{setForm(JSON.parse(saved));return}catch(e){}}DEFAULT_LENGTHS.forEach(L=>addRow({L}));document.getElementById('date').value=new Date().toISOString().slice(0,10);drawCharts()})();
+</script>
+</body>
+</html>
