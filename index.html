@@ -79,7 +79,7 @@
     <h1>單擺週期實驗紀錄</h1>
     <div class="subtitle">從預測、感測、取值、繪圖到 CER 論證；每一步都留下可回看、可下載的探究證據。</div>
     <div class="flow">
-      <div>0–5<br>預測</div><div>5–10<br>架設</div><div>10–18<br>採集</div><div>18–23<br>取值</div><div>23–28<br>匯出</div><div>28–35<br>繪圖</div><div>35–40<br>論證</div>
+      <div>0–5<br>預測</div><div>5–10<br>架設</div><div>10–18<br>採集</div><div>18–23<br>讀值</div><div>23–28<br>整理</div><div>28–35<br>繪圖</div><div>35–40<br>論證</div>
     </div>
   </section>
 
@@ -118,23 +118,24 @@
       <div><label>擺錘 / 重物</label><input id="bob" placeholder="例：金屬螺帽" /></div>
       <div><label>釋放角度</label><input id="angle" type="number" step="0.1" placeholder="例：10" /><div class="hint">建議維持小角度</div></div>
       <div><label>每次波形觀察時間（s）</label><input id="duration" type="number" step="0.1" placeholder="例：15" /></div>
-      <div><label>感測工具</label><input id="sensor" value="Phyphox 加速度計" /></div>
+      <div><label>感測工具</label><input id="sensor" value="Phyphox 自相關（Autocorrelation）" /></div>
     </div>
     <div class="status" style="margin-top:14px">提醒：擺長請量到「擺錘重心」，並盡量維持相同釋放角度與相同測量方式。</div>
   </section>
 
   <section class="card">
-    <h2>④ 數據採集與週期計算</h2>
-    <p class="hint">建議從波形挑選「相同位置的波峰」。用第一個峰值時間與最後一個峰值時間做多週期平均，比只抓相鄰兩峰更穩定。</p>
+    <h2>④ 數據採集與自相關讀值</h2>
+    <p class="hint">使用 Phyphox 的「自相關（Autocorrelation）」畫面，不需要手動找第一峰與最後峰；等待波形穩定後，直接讀取畫面顯示的「週期 T」與「頻率 f」。</p>
     <div class="concept-box">
-      <strong>💡 T² 是什麼？</strong><br>
-      T² 讀作「T 的平方」，意思是 <span class="formula">T² = T × T</span>，不是「2T」也不是「擺動兩次的時間」。<br>
-      例如：若週期 <strong>T = 1.2 秒</strong>，則 <span class="formula">T² = 1.2 × 1.2 = 1.44 秒²</span>。
-      在這個實驗中，我們比較 L–T 與 L–T² 圖，看看哪一種關係更接近直線。
+      <strong>💡 怎麼讀 Phyphox 自相關？</strong><br>
+      例如畫面顯示：<span class="formula">週期 T = 0.83 s</span>、<span class="formula">頻率 f = 1.21 Hz</span>。
+      兩者應大致符合 <span class="formula">f ≈ 1/T</span>；0.83 秒的倒數約為 1.20 Hz，和 1.21 Hz 很接近。<br>
+      <strong>💡 T² 是什麼？</strong> T² 是週期的平方，<span class="formula">T² = T × T</span>。例如 T = 0.83 s，則 T² ≈ 0.689 s²。
+      本頁會自動計算 T²，再比較 L–T 與 L–T² 哪一張圖更接近直線。
     </div>
     <div class="table-wrap">
       <table id="dataTable">
-        <thead><tr><th>擺長 L<br>(cm)</th><th>第一峰時間 t₁<br>(s)</th><th>最後峰時間 t₂<br>(s)</th><th>週期間隔數 n</th><th>週期 T=(t₂−t₁)/n<br>(s)</th><th>週期平方 T²<br>（T × T，s²）</th><th>備註 / 異常</th></tr></thead>
+        <thead><tr><th>擺長 L<br>(cm)</th><th>Phyphox 週期 T<br>(s)</th><th>Phyphox 頻率 f<br>(Hz)</th><th>週期平方 T²<br>（T × T，s²）</th><th>T–f 關係檢核<br>f ≈ 1/T</th><th>備註 / 異常</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -181,7 +182,7 @@
 <div class="modal-backdrop" id="resetModal" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
   <div class="modal">
     <h3 id="resetTitle">確定要清除目前紀錄嗎？</h3>
-    <p>將清除本頁已輸入的資料與瀏覽器暫存紀錄，並重新建立 20、30、40、50、60 cm 的空白實驗列。</p>
+    <p>將清除本頁已輸入的資料與瀏覽器暫存紀錄，並重新建立 20、30、40、50、60 cm 的空白實驗列。自相關讀值欄位也會全部清空。</p>
     <div class="modal-actions">
       <button class="btn-secondary" type="button" onclick="closeResetModal()">取消</button>
       <button class="btn-danger" type="button" onclick="resetForm()">確定清除並重填</button>
@@ -198,24 +199,42 @@ function addRow(vals={}){
   const tb=document.querySelector('#dataTable tbody');
   const tr=document.createElement('tr');
   tr.innerHTML=`
-    <td><input class="L" type="number" step="0.1" value="${vals.L??''}" oninput="updateAll()"></td>
-    <td><input class="t1" type="number" step="0.001" value="${vals.t1??''}" oninput="updateRow(this)"></td>
-    <td><input class="t2" type="number" step="0.001" value="${vals.t2??''}" oninput="updateRow(this)"></td>
-    <td><input class="n" type="number" min="1" step="1" value="${vals.n??''}" oninput="updateRow(this)"></td>
-    <td class="auto T"></td><td class="auto T2"></td>
+    <td><input class="L" type="number" step="0.1" value="${vals.L??''}" oninput="updateRow(this)"></td>
+    <td><input class="Tinput" type="number" min="0" step="0.001" value="${vals.T??''}" oninput="updateRow(this)" placeholder="例：0.83"></td>
+    <td><input class="finput" type="number" min="0" step="0.001" value="${vals.f??''}" oninput="updateRow(this)" placeholder="例：1.21"></td>
+    <td class="auto T2"></td>
+    <td class="auto check"></td>
     <td><input class="note" value="${vals.note??''}"></td>`;
   tb.appendChild(tr); updateRow(tr.querySelector('.L'));
 }
 function updateRow(el){
   const tr=el.closest('tr');
-  const t1=parseFloat(tr.querySelector('.t1').value),t2=parseFloat(tr.querySelector('.t2').value),n=parseFloat(tr.querySelector('.n').value);
-  let T=''; if(Number.isFinite(t1)&&Number.isFinite(t2)&&Number.isFinite(n)&&n>0&&t2>t1) T=(t2-t1)/n;
-  tr.querySelector('.T').textContent=T===''?'':T.toFixed(3);
-  tr.querySelector('.T2').textContent=T===''?'':(T*T).toFixed(3);
+  const T=parseFloat(tr.querySelector('.Tinput').value);
+  const f=parseFloat(tr.querySelector('.finput').value);
+  const T2=Number.isFinite(T)&&T>0 ? T*T : NaN;
+  tr.querySelector('.T2').textContent=Number.isFinite(T2)?T2.toFixed(3):'';
+  const check=tr.querySelector('.check');
+  if(Number.isFinite(T)&&T>0&&Number.isFinite(f)&&f>0){
+    const expected=1/T;
+    const rel=Math.abs(f-expected)/expected;
+    if(rel<=0.05){
+      check.textContent='✓ 接近';
+      check.style.color='#3f8b74';
+    }else{
+      check.textContent=`請確認（1/T≈${expected.toFixed(2)} Hz）`;
+      check.style.color='#c85a5a';
+    }
+  }else{
+    check.textContent='';
+    check.style.color='';
+  }
   drawCharts();
 }
 function updateAll(){document.querySelectorAll('#dataTable tbody tr').forEach(tr=>updateRow(tr.querySelector('.L')));drawCharts()}
-function rowsData(){return [...document.querySelectorAll('#dataTable tbody tr')].map(tr=>({L:+tr.querySelector('.L').value,t1:+tr.querySelector('.t1').value,t2:+tr.querySelector('.t2').value,n:+tr.querySelector('.n').value,T:parseFloat(tr.querySelector('.T').textContent),T2:parseFloat(tr.querySelector('.T2').textContent),note:tr.querySelector('.note').value}));}
+function rowsData(){return [...document.querySelectorAll('#dataTable tbody tr')].map(tr=>{
+  const T=parseFloat(tr.querySelector('.Tinput').value), f=parseFloat(tr.querySelector('.finput').value);
+  return {L:+tr.querySelector('.L').value,T,f,T2:Number.isFinite(T)?T*T:NaN,note:tr.querySelector('.note').value};
+});}
 
 function drawScatter(canvasId,points,xLabel,yLabel){
   const c=document.getElementById(canvasId),ctx=c.getContext('2d');
@@ -233,7 +252,7 @@ function drawCharts(){const d=rowsData().filter(r=>Number.isFinite(r.L)&&r.L>0&&
 
 function getForm(){const o={};ids.forEach(id=>o[id]=document.getElementById(id).value);o.rows=rowsData();return o}
 function setForm(o){ids.forEach(id=>{if(o[id]!==undefined)document.getElementById(id).value=o[id]});document.querySelector('#dataTable tbody').innerHTML='';(o.rows||[]).forEach(addRow);if(!(o.rows||[]).length)DEFAULT_LENGTHS.forEach(L=>addRow({L}));updateAll()}
-function saveLocal(){localStorage.setItem('pendulumRecordV1',JSON.stringify(getForm()));alert('已儲存在此瀏覽器。')}
+function saveLocal(){localStorage.setItem('pendulumRecordV2',JSON.stringify(getForm()));alert('已儲存在此瀏覽器。')}
 function openResetModal(){
   const modal=document.getElementById('resetModal');
   modal.classList.add('show');
@@ -248,14 +267,14 @@ function showToast(msg='已清除，可以重新填寫。'){
   window.__toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
 }
 function resetForm(){
-  try{localStorage.removeItem('pendulumRecordV1')}catch(e){}
+  try{localStorage.removeItem('pendulumRecordV2')}catch(e){}
   ids.forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     if(el.tagName==='SELECT') el.selectedIndex=0;
     else el.value='';
   });
-  document.getElementById('sensor').value='Phyphox 加速度計';
+  document.getElementById('sensor').value='Phyphox 自相關（Autocorrelation）';
   document.getElementById('date').value=new Date().toISOString().slice(0,10);
   const tb=document.querySelector('#dataTable tbody');
   tb.innerHTML='';
@@ -267,21 +286,21 @@ function resetForm(){
 }
 // 點擊遮罩空白處也可關閉
 document.addEventListener('click',e=>{if(e.target&&e.target.id==='resetModal')closeResetModal()});
-function fillDemo(){const demo=[{L:20,t1:0.50,t2:8.60,n:9},{L:30,t1:0.45,t2:10.35,n:9},{L:40,t1:0.60,t2:12.03,n:9},{L:50,t1:0.55,t2:13.33,n:9},{L:60,t1:0.40,t2:14.35,n:9}];document.querySelector('#dataTable tbody').innerHTML='';demo.forEach(addRow);updateAll()}
+function fillDemo(){const demo=[{L:20,T:0.90,f:1.11},{L:30,T:1.10,f:0.91},{L:40,T:1.27,f:0.79},{L:50,T:1.42,f:0.70},{L:60,T:1.55,f:0.65}];document.querySelector('#dataTable tbody').innerHTML='';demo.forEach(addRow);updateAll()}
 
 function downloadExcel(){
   if(typeof XLSX==='undefined'){alert('Excel 元件尚未載入，請確認網路連線後再試一次。');return}
   const f=getForm();
   const basic=[['單擺週期數位探究實驗紀錄',''],['班級/組別',f.group],['日期',f.date],['數據採集員',f.role1],['操作指引員',f.role2],['紀錄分析員',f.role3],['發表員',f.role4],[],['預測',f.prediction],['預測理由',f.predictionReason],[],['擺錘/重物',f.bob],['釋放角度',f.angle],['波形觀察時間(s)',f.duration],['感測工具',f.sensor]];
-  const data=[['擺長 L(cm)','第一峰 t1(s)','最後峰 t2(s)','週期間隔數 n','週期 T(s)','週期平方 T² = T×T (s²)','備註/異常'],...f.rows.map(r=>[r.L||'',r.t1||'',r.t2||'',r.n||'',Number.isFinite(r.T)?+r.T.toFixed(3):'',Number.isFinite(r.T2)?+r.T2.toFixed(3):'',r.note])];
+  const data=[['擺長 L(cm)','Phyphox 週期 T(s)','Phyphox 頻率 f(Hz)','週期平方 T² = T×T (s²)','T–f 檢核（f≈1/T）','備註/異常'],...f.rows.map(r=>{const ok=Number.isFinite(r.T)&&r.T>0&&Number.isFinite(r.f)&&r.f>0;const expected=ok?1/r.T:NaN;const check=ok?(Math.abs(r.f-expected)/expected<=0.05?'接近':`請確認（1/T≈${expected.toFixed(2)} Hz）`):'';return [r.L||'',Number.isFinite(r.T)?+r.T.toFixed(3):'',Number.isFinite(r.f)?+r.f.toFixed(3):'',Number.isFinite(r.T2)?+r.T2.toFixed(3):'',check,r.note]})];
   const analysis=[['圖表判讀',''],['較接近直線',f.linearChoice],['圖表發現',f.graphFinding],[],['CER 科學論證',''],['C｜主張',f.claim],['E｜證據',f.evidence],['R｜推理',f.reasoning],[],['異常數據/離群值',f.outlier],['下次改進',f.improve],['小組一句話結論',f.oneSentence]];
   const wb=XLSX.utils.book_new(),ws1=XLSX.utils.aoa_to_sheet(basic),ws2=XLSX.utils.aoa_to_sheet(data),ws3=XLSX.utils.aoa_to_sheet(analysis);
-  ws1['!cols']=[{wch:22},{wch:60}];ws2['!cols']=[{wch:14},{wch:15},{wch:15},{wch:16},{wch:14},{wch:14},{wch:36}];ws3['!cols']=[{wch:22},{wch:72}];
+  ws1['!cols']=[{wch:22},{wch:60}];ws2['!cols']=[{wch:14},{wch:18},{wch:18},{wch:22},{wch:28},{wch:36}];ws3['!cols']=[{wch:22},{wch:72}];
   XLSX.utils.book_append_sheet(wb,ws1,'基本資料');XLSX.utils.book_append_sheet(wb,ws2,'實驗數據');XLSX.utils.book_append_sheet(wb,ws3,'分析與CER');
   const safe=(f.group||'未命名組別').replace(/[\\/:*?"<>|]/g,'_');XLSX.writeFile(wb,`單擺週期實驗紀錄_${safe}.xlsx`);
 }
 
-(function init(){const saved=localStorage.getItem('pendulumRecordV1');if(saved){try{setForm(JSON.parse(saved));return}catch(e){}}DEFAULT_LENGTHS.forEach(L=>addRow({L}));document.getElementById('date').value=new Date().toISOString().slice(0,10);drawCharts()})();
+(function init(){const saved=localStorage.getItem('pendulumRecordV2');if(saved){try{setForm(JSON.parse(saved));return}catch(e){}}DEFAULT_LENGTHS.forEach(L=>addRow({L}));document.getElementById('date').value=new Date().toISOString().slice(0,10);drawCharts()})();
 </script>
 </body>
 </html>
